@@ -24,7 +24,7 @@ def main():
 
     # 创建网格
     atk_range = np.linspace(0, 1000, 100)
-    def_range = np.linspace(0, 1000, 100)
+    def_range = np.linspace(200, 1000, 100)  # 修改防御力范围
     ATK, DEF = np.meshgrid(atk_range, def_range)
 
     # 计算伤害差异
