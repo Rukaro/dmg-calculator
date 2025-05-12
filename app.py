@@ -11,14 +11,38 @@ def calculate_new_damage(atk, def_, atk_multiplier, final_multiplier):
 def main():
     st.title("伤害公式对比可视化工具")
     
+    # 初始化session_state
+    if 'old_multiplier' not in st.session_state:
+        st.session_state.old_multiplier = 225
+    if 'new_multiplier' not in st.session_state:
+        st.session_state.new_multiplier = 78
+
     # 创建参数调整区域
     col1, col2, col3 = st.columns(3)
     with col1:
-        old_multiplier_slider = st.slider("旧公式攻击力倍率 (%)", min_value=0, max_value=1000, value=225, step=1, key="old_multiplier_slider")
-        old_multiplier = st.number_input("", min_value=0, max_value=1000, value=old_multiplier_slider, step=1, key="old_multiplier_input") / 100
+        def update_old_slider():
+            st.session_state.old_multiplier = st.session_state.old_input
+        def update_old_input():
+            st.session_state.old_multiplier = st.session_state.old_slider
+
+        st.slider("旧公式攻击力倍率 (%)", min_value=0, max_value=1000, value=st.session_state.old_multiplier, 
+                 step=1, key="old_slider", on_change=update_old_input)
+        st.number_input("", min_value=0, max_value=1000, value=st.session_state.old_multiplier, 
+                       step=1, key="old_input", on_change=update_old_slider)
+        old_multiplier = st.session_state.old_multiplier / 100
+
     with col2:
-        new_multiplier_slider = st.slider("新公式攻击力倍率 (%)", min_value=0, max_value=1000, value=78, step=1, key="new_multiplier_slider")
-        new_multiplier = st.number_input("", min_value=0, max_value=1000, value=new_multiplier_slider, step=1, key="new_multiplier_input") / 100
+        def update_new_slider():
+            st.session_state.new_multiplier = st.session_state.new_input
+        def update_new_input():
+            st.session_state.new_multiplier = st.session_state.new_slider
+
+        st.slider("新公式攻击力倍率 (%)", min_value=0, max_value=1000, value=st.session_state.new_multiplier, 
+                 step=1, key="new_slider", on_change=update_new_input)
+        st.number_input("", min_value=0, max_value=1000, value=st.session_state.new_multiplier, 
+                       step=1, key="new_input", on_change=update_new_slider)
+        new_multiplier = st.session_state.new_multiplier / 100
+
     with col3:
         final_multiplier = st.number_input("新公式最终倍率", min_value=0, max_value=100, value=4, step=1)
 
