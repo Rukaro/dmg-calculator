@@ -20,27 +20,37 @@ def main():
     # 创建参数调整区域
     col1, col2, col3 = st.columns(3)
     with col1:
-        def update_old_slider():
-            st.session_state.old_multiplier = st.session_state.old_input
-        def update_old_input():
-            st.session_state.old_multiplier = st.session_state.old_slider
+        # 使用回调函数更新session_state
+        def update_old_value():
+            if 'old_input' in st.session_state:
+                st.session_state.old_multiplier = st.session_state.old_input
+            if 'old_slider' in st.session_state:
+                st.session_state.old_multiplier = st.session_state.old_slider
 
-        st.slider("旧公式攻击力倍率 (%)", min_value=0, max_value=1000, value=st.session_state.old_multiplier, 
-                 step=1, key="old_slider", on_change=update_old_input)
-        st.number_input("", min_value=0, max_value=1000, value=st.session_state.old_multiplier, 
-                       step=1, key="old_input", on_change=update_old_slider)
+        # 创建控件
+        st.slider("旧公式攻击力倍率 (%)", min_value=0, max_value=1000, 
+                 value=st.session_state.old_multiplier, step=1, 
+                 key="old_slider", on_change=update_old_value)
+        st.number_input("", min_value=0, max_value=1000, 
+                       value=st.session_state.old_multiplier, step=1, 
+                       key="old_input", on_change=update_old_value)
         old_multiplier = st.session_state.old_multiplier / 100
 
     with col2:
-        def update_new_slider():
-            st.session_state.new_multiplier = st.session_state.new_input
-        def update_new_input():
-            st.session_state.new_multiplier = st.session_state.new_slider
+        # 使用回调函数更新session_state
+        def update_new_value():
+            if 'new_input' in st.session_state:
+                st.session_state.new_multiplier = st.session_state.new_input
+            if 'new_slider' in st.session_state:
+                st.session_state.new_multiplier = st.session_state.new_slider
 
-        st.slider("新公式攻击力倍率 (%)", min_value=0, max_value=1000, value=st.session_state.new_multiplier, 
-                 step=1, key="new_slider", on_change=update_new_input)
-        st.number_input("", min_value=0, max_value=1000, value=st.session_state.new_multiplier, 
-                       step=1, key="new_input", on_change=update_new_slider)
+        # 创建控件
+        st.slider("新公式攻击力倍率 (%)", min_value=0, max_value=1000, 
+                 value=st.session_state.new_multiplier, step=1, 
+                 key="new_slider", on_change=update_new_value)
+        st.number_input("", min_value=0, max_value=1000, 
+                       value=st.session_state.new_multiplier, step=1, 
+                       key="new_input", on_change=update_new_value)
         new_multiplier = st.session_state.new_multiplier / 100
 
     with col3:
