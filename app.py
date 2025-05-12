@@ -14,11 +14,11 @@ def main():
     # 创建参数调整区域
     col1, col2, col3 = st.columns(3)
     with col1:
-        old_multiplier = st.slider("旧公式攻击力倍率 (%)", min_value=0, max_value=1000, value=225, step=1) / 100
-        st.number_input("旧公式攻击力倍率 (%)", min_value=0, max_value=1000, value=int(old_multiplier * 100), step=1, key="old_multiplier_input")
+        old_multiplier_input = st.number_input("旧公式攻击力倍率 (%)", min_value=0, max_value=1000, value=225, step=1, key="old_multiplier_input")
+        old_multiplier = st.slider("", min_value=0, max_value=1000, value=old_multiplier_input, step=1, key="old_multiplier_slider") / 100
     with col2:
-        new_multiplier = st.slider("新公式攻击力倍率 (%)", min_value=0, max_value=1000, value=78, step=1) / 100
-        st.number_input("新公式攻击力倍率 (%)", min_value=0, max_value=1000, value=int(new_multiplier * 100), step=1, key="new_multiplier_input")
+        new_multiplier_input = st.number_input("新公式攻击力倍率 (%)", min_value=0, max_value=1000, value=78, step=1, key="new_multiplier_input")
+        new_multiplier = st.slider("", min_value=0, max_value=1000, value=new_multiplier_input, step=1, key="new_multiplier_slider") / 100
     with col3:
         final_multiplier = st.number_input("新公式最终倍率", min_value=0, max_value=100, value=4, step=1)
 
