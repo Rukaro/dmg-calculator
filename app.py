@@ -142,6 +142,16 @@ st.markdown("""
     border: none;
 }
 
+.power-display {
+    text-align: center;
+    font-weight: bold;
+    color: #495057;
+    margin-top: 10px;
+    padding: 5px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+}
+
 .empty-slot {
     background-color: #f8f9fa;
     border: 2px dashed #dee2e6;
@@ -238,6 +248,22 @@ st.markdown("""
     background-color: #c82333;
 }
 </style>
+
+<script>
+function updateValue(key, value) {
+    // 这里需要通过Streamlit的session_state更新值
+    // 由于JavaScript无法直接访问Python的session_state，
+    // 我们需要通过其他方式处理，比如重新加载页面
+    window.location.reload();
+}
+
+function adjustValue(key, delta) {
+    // 这里需要通过Streamlit的session_state更新值
+    // 由于JavaScript无法直接访问Python的session_state，
+    // 我们需要通过其他方式处理，比如重新加载页面
+    window.location.reload();
+}
+</script>
 """, unsafe_allow_html=True)
 
 class Character:
@@ -324,59 +350,6 @@ class BattleSimulator:
                 self.battle_log.append("战斗超时，判定为平局")
                 return "draw"
 
-def create_character_card(character_index, side, is_active=True):
-    """创建角色卡片HTML"""
-    if is_active:
-        # 获取当前值
-        attack_key = f"{side}_attack_{character_index}"
-        defense_key = f"{side}_defense_{character_index}"
-        hp_key = f"{side}_hp_{character_index}"
-        
-        attack = st.session_state.get(attack_key, 159)
-        defense = st.session_state.get(defense_key, 215)
-        hp = st.session_state.get(hp_key, 423)
-        
-        # 计算战力
-        power = 0.35 * attack + 0.28 * defense + 0.14 * hp
-        
-        return f"""
-        <div class="character-card">
-            <h3>角色{character_index + 1}</h3>
-            <div class="attribute-row">
-                <span class="attribute-label">攻击</span>
-                <span class="attribute-value">{attack}</span>
-            </div>
-            <div class="slider-container">
-                <button class="slider-minus" onclick="adjustValue('{attack_key}', -1)">-</button>
-                <input type="range" class="slider" min="100" max="2000" value="{attack}" 
-                       onchange="updateValue('{attack_key}', this.value)" />
-                <button class="slider-plus" onclick="adjustValue('{attack_key}', 1)">+</button>
-            </div>
-            <div class="attribute-row">
-                <span class="attribute-label">防御</span>
-                <span class="attribute-value">{defense}</span>
-            </div>
-            <div class="slider-container">
-                <button class="slider-minus" onclick="adjustValue('{defense_key}', -1)">-</button>
-                <input type="range" class="slider" min="100" max="2000" value="{defense}" 
-                       onchange="updateValue('{defense_key}', this.value)" />
-                <button class="slider-plus" onclick="adjustValue('{defense_key}', 1)">+</button>
-            </div>
-            <div class="attribute-row">
-                <span class="attribute-label">生命</span>
-                <span class="attribute-value">{hp}</span>
-            </div>
-            <div class="slider-container">
-                <button class="slider-minus" onclick="adjustValue('{hp_key}', -1)">-</button>
-                <input type="range" class="slider" min="100" max="6000" value="{hp}" 
-                       onchange="updateValue('{hp_key}', this.value)" />
-                <button class="slider-plus" onclick="adjustValue('{hp_key}', 1)">+</button>
-            </div>
-        </div>
-        """
-    else:
-        return '<div class="empty-slot">+</div>'
-
 def main():
     st.title("战斗模拟器")
     
@@ -420,28 +393,17 @@ def main():
         # 进攻方
         st.markdown('<div class="section-header"><h2>进攻方</h2></div>', unsafe_allow_html=True)
         
-        # 创建角色卡片
+        # 创建角色卡片 - 使用简化的Streamlit组件
         cols = st.columns(5)
         for i in range(5):
             with cols[i]:
                 if i < st.session_state.attacker_count:
-                    # 使用Streamlit组件创建角色卡片
-                    st.subheader(f"角色{i+1}")
+                    # 使用简化的Streamlit组件
+                    st.markdown(f'<div class="character-card"><h3>角色{i+1}</h3>', unsafe_allow_html=True)
                     
-                    # 添加删除按钮（除了第一个角色）
-                    if i > 0:
-                        if st.button("✕", key=f"remove_attacker_{i}", help="删除此角色"):
-                            remove_attacker()
-                            st.rerun()
-                    
-                    # 攻击行
-                    col1, col2 = st.columns([1, 2])
-                    with col1:
-                        st.write("**攻击**")
-                    with col2:
-                        attack = st.number_input("", 100, 2000, st.session_state[f'attacker_attack_{i}'], key=f"attacker_attack_{i}")
-                    
-                    # 攻击滑动条
+                    # 攻击
+                    st.write("**攻击**")
+                    attack = st.number_input("", 100, 2000, st.session_state[f'attacker_attack_{i}'], key=f"attacker_attack_{i}")
                     col1, col2, col3 = st.columns([1, 4, 1])
                     with col1:
                         if st.button("-", key=f"attacker_attack_minus_{i}"):
@@ -449,7 +411,6 @@ def main():
                             st.rerun()
                     with col2:
                         attack_slider = st.slider("", 100, 2000, attack, key=f"attacker_attack_slider_{i}")
-                        # 同步滑动条值到数字输入框
                         if attack_slider != attack:
                             st.session_state[f'attacker_attack_{i}'] = attack_slider
                             st.rerun()
@@ -458,14 +419,9 @@ def main():
                             st.session_state[f'attacker_attack_{i}'] = min(2000, st.session_state[f'attacker_attack_{i}'] + 1)
                             st.rerun()
                     
-                    # 防御行
-                    col1, col2 = st.columns([1, 2])
-                    with col1:
-                        st.write("**防御**")
-                    with col2:
-                        defense = st.number_input("", 100, 2000, st.session_state[f'attacker_defense_{i}'], key=f"attacker_defense_{i}")
-                    
-                    # 防御滑动条
+                    # 防御
+                    st.write("**防御**")
+                    defense = st.number_input("", 100, 2000, st.session_state[f'attacker_defense_{i}'], key=f"attacker_defense_{i}")
                     col1, col2, col3 = st.columns([1, 4, 1])
                     with col1:
                         if st.button("-", key=f"attacker_defense_minus_{i}"):
@@ -473,7 +429,6 @@ def main():
                             st.rerun()
                     with col2:
                         defense_slider = st.slider("", 100, 2000, defense, key=f"attacker_defense_slider_{i}")
-                        # 同步滑动条值到数字输入框
                         if defense_slider != defense:
                             st.session_state[f'attacker_defense_{i}'] = defense_slider
                             st.rerun()
@@ -482,14 +437,9 @@ def main():
                             st.session_state[f'attacker_defense_{i}'] = min(2000, st.session_state[f'attacker_defense_{i}'] + 1)
                             st.rerun()
                     
-                    # 生命行
-                    col1, col2 = st.columns([1, 2])
-                    with col1:
-                        st.write("**生命**")
-                    with col2:
-                        hp = st.number_input("", 100, 6000, st.session_state[f'attacker_hp_{i}'], key=f"attacker_hp_{i}")
-                    
-                    # 生命滑动条
+                    # 生命
+                    st.write("**生命**")
+                    hp = st.number_input("", 100, 6000, st.session_state[f'attacker_hp_{i}'], key=f"attacker_hp_{i}")
                     col1, col2, col3 = st.columns([1, 4, 1])
                     with col1:
                         if st.button("-", key=f"attacker_hp_minus_{i}"):
@@ -497,7 +447,6 @@ def main():
                             st.rerun()
                     with col2:
                         hp_slider = st.slider("", 100, 6000, hp, key=f"attacker_hp_slider_{i}")
-                        # 同步滑动条值到数字输入框
                         if hp_slider != hp:
                             st.session_state[f'attacker_hp_{i}'] = hp_slider
                             st.rerun()
@@ -508,7 +457,13 @@ def main():
                     
                     # 计算战力
                     power = 0.35 * attack + 0.28 * defense + 0.14 * hp
-                    st.write(f"战力: {power:.1f}")
+                    st.markdown(f'<div class="power-display">战力: {power:.1f}</div></div>', unsafe_allow_html=True)
+                    
+                    # 添加删除按钮（除了第一个角色）
+                    if i > 0:
+                        if st.button("✕", key=f"remove_attacker_{i}", help="删除此角色"):
+                            remove_attacker()
+                            st.rerun()
                 else:
                     # 空槽位 - 点击添加角色
                     if st.button("+", key=f"add_attacker_slot_{i}", help="添加角色"):
@@ -518,28 +473,17 @@ def main():
         # 防守方
         st.markdown('<div class="section-header"><h2>防守方</h2></div>', unsafe_allow_html=True)
         
-        # 创建角色卡片
+        # 创建角色卡片 - 使用简化的Streamlit组件
         cols = st.columns(5)
         for i in range(5):
             with cols[i]:
                 if i < st.session_state.defender_count:
-                    # 使用Streamlit组件创建角色卡片
-                    st.subheader(f"角色{i+1}")
+                    # 使用简化的Streamlit组件
+                    st.markdown(f'<div class="character-card"><h3>角色{i+1}</h3>', unsafe_allow_html=True)
                     
-                    # 添加删除按钮（除了第一个角色）
-                    if i > 0:
-                        if st.button("✕", key=f"remove_defender_{i}", help="删除此角色"):
-                            remove_defender()
-                            st.rerun()
-                    
-                    # 攻击行
-                    col1, col2 = st.columns([1, 2])
-                    with col1:
-                        st.write("**攻击**")
-                    with col2:
-                        attack = st.number_input("", 100, 2000, st.session_state[f'defender_attack_{i}'], key=f"defender_attack_{i}")
-                    
-                    # 攻击滑动条
+                    # 攻击
+                    st.write("**攻击**")
+                    attack = st.number_input("", 100, 2000, st.session_state[f'defender_attack_{i}'], key=f"defender_attack_{i}")
                     col1, col2, col3 = st.columns([1, 4, 1])
                     with col1:
                         if st.button("-", key=f"defender_attack_minus_{i}"):
@@ -547,7 +491,6 @@ def main():
                             st.rerun()
                     with col2:
                         attack_slider = st.slider("", 100, 2000, attack, key=f"defender_attack_slider_{i}")
-                        # 同步滑动条值到数字输入框
                         if attack_slider != attack:
                             st.session_state[f'defender_attack_{i}'] = attack_slider
                             st.rerun()
@@ -556,14 +499,9 @@ def main():
                             st.session_state[f'defender_attack_{i}'] = min(2000, st.session_state[f'defender_attack_{i}'] + 1)
                             st.rerun()
                     
-                    # 防御行
-                    col1, col2 = st.columns([1, 2])
-                    with col1:
-                        st.write("**防御**")
-                    with col2:
-                        defense = st.number_input("", 100, 2000, st.session_state[f'defender_defense_{i}'], key=f"defender_defense_{i}")
-                    
-                    # 防御滑动条
+                    # 防御
+                    st.write("**防御**")
+                    defense = st.number_input("", 100, 2000, st.session_state[f'defender_defense_{i}'], key=f"defender_defense_{i}")
                     col1, col2, col3 = st.columns([1, 4, 1])
                     with col1:
                         if st.button("-", key=f"defender_defense_minus_{i}"):
@@ -571,7 +509,6 @@ def main():
                             st.rerun()
                     with col2:
                         defense_slider = st.slider("", 100, 2000, defense, key=f"defender_defense_slider_{i}")
-                        # 同步滑动条值到数字输入框
                         if defense_slider != defense:
                             st.session_state[f'defender_defense_{i}'] = defense_slider
                             st.rerun()
@@ -580,14 +517,9 @@ def main():
                             st.session_state[f'defender_defense_{i}'] = min(2000, st.session_state[f'defender_defense_{i}'] + 1)
                             st.rerun()
                     
-                    # 生命行
-                    col1, col2 = st.columns([1, 2])
-                    with col1:
-                        st.write("**生命**")
-                    with col2:
-                        hp = st.number_input("", 100, 6000, st.session_state[f'defender_hp_{i}'], key=f"defender_hp_{i}")
-                    
-                    # 生命滑动条
+                    # 生命
+                    st.write("**生命**")
+                    hp = st.number_input("", 100, 6000, st.session_state[f'defender_hp_{i}'], key=f"defender_hp_{i}")
                     col1, col2, col3 = st.columns([1, 4, 1])
                     with col1:
                         if st.button("-", key=f"defender_hp_minus_{i}"):
@@ -595,7 +527,6 @@ def main():
                             st.rerun()
                     with col2:
                         hp_slider = st.slider("", 100, 6000, hp, key=f"defender_hp_slider_{i}")
-                        # 同步滑动条值到数字输入框
                         if hp_slider != hp:
                             st.session_state[f'defender_hp_{i}'] = hp_slider
                             st.rerun()
@@ -606,7 +537,13 @@ def main():
                     
                     # 计算战力
                     power = 0.35 * attack + 0.28 * defense + 0.14 * hp
-                    st.write(f"战力: {power:.1f}")
+                    st.markdown(f'<div class="power-display">战力: {power:.1f}</div></div>', unsafe_allow_html=True)
+                    
+                    # 添加删除按钮（除了第一个角色）
+                    if i > 0:
+                        if st.button("✕", key=f"remove_defender_{i}", help="删除此角色"):
+                            remove_defender()
+                            st.rerun()
                 else:
                     # 空槽位 - 点击添加角色
                     if st.button("+", key=f"add_defender_slot_{i}", help="添加角色"):
