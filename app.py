@@ -3,6 +3,9 @@ import numpy as np
 import random
 import time
 
+# 设置页面宽度
+st.set_page_config(layout="wide")
+
 # 添加CSS样式
 st.markdown("""
 <style>
@@ -13,6 +16,7 @@ st.markdown("""
     padding: 15px;
     margin: 5px;
     min-height: 200px;
+    position: relative;
 }
 
 .character-card h3 {
@@ -21,6 +25,27 @@ st.markdown("""
     color: #495057;
     font-size: 16px;
     text-align: center;
+}
+
+.delete-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-button:hover {
+    background-color: #c82333;
 }
 
 .attribute-group {
@@ -80,6 +105,12 @@ st.markdown("""
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.empty-slot:hover {
+    background-color: #e9ecef;
 }
 
 .section-header {
@@ -243,68 +274,6 @@ class BattleSimulator:
                 self.battle_log.append("战斗超时，判定为平局")
                 return "draw"
 
-def create_character_card(character_index, side, is_active=True):
-    """创建角色卡片"""
-    if is_active:
-        # 获取当前值
-        attack_key = f"{side}_attack_{character_index}"
-        defense_key = f"{side}_defense_{character_index}"
-        hp_key = f"{side}_hp_{character_index}"
-        
-        attack = st.session_state.get(attack_key, 159)
-        defense = st.session_state.get(defense_key, 215)
-        hp = st.session_state.get(hp_key, 423)
-        
-        # 计算战力
-        power = 0.35 * attack + 0.28 * defense + 0.14 * hp
-        
-        return f"""
-        <div class="character-card">
-            <h3>角色{character_index + 1}</h3>
-            <div class="attribute-group">
-                <div class="attribute-label">攻击</div>
-                <div class="attribute-input">
-                    <input type="number" value="{attack}" min="100" max="2000" 
-                           onchange="updateValue('{attack_key}', this.value)" />
-                    <button onclick="adjustValue('{attack_key}', -1)">-</button>
-                    <button onclick="adjustValue('{attack_key}', 1)">+</button>
-                </div>
-                <div class="slider-container">
-                    <input type="range" min="100" max="2000" value="{attack}" 
-                           onchange="updateValue('{attack_key}', this.value)" style="width: 100%;" />
-                </div>
-            </div>
-            <div class="attribute-group">
-                <div class="attribute-label">防御</div>
-                <div class="attribute-input">
-                    <input type="number" value="{defense}" min="100" max="2000" 
-                           onchange="updateValue('{defense_key}', this.value)" />
-                    <button onclick="adjustValue('{defense_key}', -1)">-</button>
-                    <button onclick="adjustValue('{defense_key}', 1)">+</button>
-                </div>
-                <div class="slider-container">
-                    <input type="range" min="100" max="2000" value="{defense}" 
-                           onchange="updateValue('{defense_key}', this.value)" style="width: 100%;" />
-                </div>
-            </div>
-            <div class="attribute-group">
-                <div class="attribute-label">生命</div>
-                <div class="attribute-input">
-                    <input type="number" value="{hp}" min="100" max="6000" 
-                           onchange="updateValue('{hp_key}', this.value)" />
-                    <button onclick="adjustValue('{hp_key}', -1)">-</button>
-                    <button onclick="adjustValue('{hp_key}', 1)">+</button>
-                </div>
-                <div class="slider-container">
-                    <input type="range" min="100" max="6000" value="{hp}" 
-                           onchange="updateValue('{hp_key}', this.value)" style="width: 100%;" />
-                </div>
-            </div>
-        </div>
-        """
-    else:
-        return '<div class="empty-slot">+</div>'
-
 def main():
     st.title("战斗模拟器")
     
@@ -325,24 +294,24 @@ def main():
                 st.session_state[f'{side}_hp_{i}'] = 423
     
     # 角色数量控制函数
-    def increase_attackers():
+    def add_attacker():
         if st.session_state.attacker_count < 5:
             st.session_state.attacker_count += 1
     
-    def decrease_attackers():
+    def remove_attacker():
         if st.session_state.attacker_count > 1:
             st.session_state.attacker_count -= 1
     
-    def increase_defenders():
+    def add_defender():
         if st.session_state.defender_count < 5:
             st.session_state.defender_count += 1
     
-    def decrease_defenders():
+    def remove_defender():
         if st.session_state.defender_count > 1:
             st.session_state.defender_count -= 1
     
-    # 主界面布局
-    col1, col2 = st.columns([4, 1])
+    # 主界面布局 - 使用更宽的布局
+    col1, col2 = st.columns([5, 1])
     
     with col1:
         # 进攻方
@@ -355,6 +324,12 @@ def main():
                 if i < st.session_state.attacker_count:
                     # 使用Streamlit组件创建角色卡片
                     st.subheader(f"角色{i+1}")
+                    
+                    # 添加删除按钮（除了第一个角色）
+                    if i > 0:
+                        if st.button("✕", key=f"remove_attacker_{i}", help="删除此角色"):
+                            remove_attacker()
+                            st.rerun()
                     
                     # 攻击
                     attack = st.number_input("攻击", 100, 2000, st.session_state[f'attacker_attack_{i}'], key=f"attacker_attack_{i}")
@@ -372,7 +347,10 @@ def main():
                     power = 0.35 * attack + 0.28 * defense + 0.14 * hp
                     st.write(f"战力: {power:.1f}")
                 else:
-                    st.markdown('<div class="empty-slot">+</div>', unsafe_allow_html=True)
+                    # 空槽位 - 点击添加角色
+                    if st.button("+", key=f"add_attacker_slot_{i}", help="添加角色"):
+                        add_attacker()
+                        st.rerun()
         
         # 防守方
         st.markdown('<div class="section-header"><h2>防守方</h2></div>', unsafe_allow_html=True)
@@ -384,6 +362,12 @@ def main():
                 if i < st.session_state.defender_count:
                     # 使用Streamlit组件创建角色卡片
                     st.subheader(f"角色{i+1}")
+                    
+                    # 添加删除按钮（除了第一个角色）
+                    if i > 0:
+                        if st.button("✕", key=f"remove_defender_{i}", help="删除此角色"):
+                            remove_defender()
+                            st.rerun()
                     
                     # 攻击
                     attack = st.number_input("攻击", 100, 2000, st.session_state[f'defender_attack_{i}'], key=f"defender_attack_{i}")
@@ -401,7 +385,10 @@ def main():
                     power = 0.35 * attack + 0.28 * defense + 0.14 * hp
                     st.write(f"战力: {power:.1f}")
                 else:
-                    st.markdown('<div class="empty-slot">+</div>', unsafe_allow_html=True)
+                    # 空槽位 - 点击添加角色
+                    if st.button("+", key=f"add_defender_slot_{i}", help="添加角色"):
+                        add_defender()
+                        st.rerun()
     
     with col2:
         st.markdown('<div class="control-panel">', unsafe_allow_html=True)
