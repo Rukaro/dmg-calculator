@@ -251,6 +251,14 @@ st.markdown("""
 .battle-button:hover {
     background-color: #c82333;
 }
+
+.attribute-section {
+    margin-bottom: 15px;
+    padding: 8px;
+    background-color: white;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+}
 </style>
 
 <script>
@@ -463,6 +471,7 @@ def main():
                     st.markdown(f'<div class="character-card"><h3>角色{i+1}</h3>', unsafe_allow_html=True)
                     
                     # 攻击
+                    st.markdown('<div class="attribute-section">', unsafe_allow_html=True)
                     st.write("**攻击**")
                     attack = st.number_input("", 100, 2000, st.session_state[f'attacker_attack_{i}'], key=f"attacker_attack_{i}", on_change=sync_attacker_attack_input_to_slider)
                     slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
@@ -476,8 +485,10 @@ def main():
                         if st.button("+", key=f"attacker_attack_plus_{i}"):
                             st.session_state[f'attacker_attack_{i}'] = min(2000, st.session_state[f'attacker_attack_{i}'] + 1)
                             st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
                     
                     # 防御
+                    st.markdown('<div class="attribute-section">', unsafe_allow_html=True)
                     st.write("**防御**")
                     defense = st.number_input("", 100, 2000, st.session_state[f'attacker_defense_{i}'], key=f"attacker_defense_{i}", on_change=sync_attacker_defense_input_to_slider)
                     slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
@@ -491,8 +502,10 @@ def main():
                         if st.button("+", key=f"attacker_defense_plus_{i}"):
                             st.session_state[f'attacker_defense_{i}'] = min(2000, st.session_state[f'attacker_defense_{i}'] + 1)
                             st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
                     
                     # 生命
+                    st.markdown('<div class="attribute-section">', unsafe_allow_html=True)
                     st.write("**生命**")
                     hp = st.number_input("", 100, 6000, st.session_state[f'attacker_hp_{i}'], key=f"attacker_hp_{i}", on_change=sync_attacker_hp_input_to_slider)
                     slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
@@ -506,6 +519,7 @@ def main():
                         if st.button("+", key=f"attacker_hp_plus_{i}"):
                             st.session_state[f'attacker_hp_{i}'] = min(6000, st.session_state[f'attacker_hp_{i}'] + 1)
                             st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
                     
                     # 计算战力
                     power = 0.35 * attack + 0.28 * defense + 0.14 * hp
@@ -534,6 +548,7 @@ def main():
                     st.markdown(f'<div class="character-card"><h3>角色{i+1}</h3>', unsafe_allow_html=True)
                     
                     # 攻击
+                    st.markdown('<div class="attribute-section">', unsafe_allow_html=True)
                     st.write("**攻击**")
                     attack = st.number_input("", 100, 2000, st.session_state[f'defender_attack_{i}'], key=f"defender_attack_{i}", on_change=sync_defender_attack_input_to_slider)
                     slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
@@ -547,8 +562,10 @@ def main():
                         if st.button("+", key=f"defender_attack_plus_{i}"):
                             st.session_state[f'defender_attack_{i}'] = min(2000, st.session_state[f'defender_attack_{i}'] + 1)
                             st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
                     
                     # 防御
+                    st.markdown('<div class="attribute-section">', unsafe_allow_html=True)
                     st.write("**防御**")
                     defense = st.number_input("", 100, 2000, st.session_state[f'defender_defense_{i}'], key=f"defender_defense_{i}", on_change=sync_defender_defense_input_to_slider)
                     slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
@@ -562,8 +579,10 @@ def main():
                         if st.button("+", key=f"defender_defense_plus_{i}"):
                             st.session_state[f'defender_defense_{i}'] = min(2000, st.session_state[f'defender_defense_{i}'] + 1)
                             st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
                     
                     # 生命
+                    st.markdown('<div class="attribute-section">', unsafe_allow_html=True)
                     st.write("**生命**")
                     hp = st.number_input("", 100, 6000, st.session_state[f'defender_hp_{i}'], key=f"defender_hp_{i}", on_change=sync_defender_hp_input_to_slider)
                     slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
@@ -577,6 +596,7 @@ def main():
                         if st.button("+", key=f"defender_hp_plus_{i}"):
                             st.session_state[f'defender_hp_{i}'] = min(6000, st.session_state[f'defender_hp_{i}'] + 1)
                             st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
                     
                     # 计算战力
                     power = 0.35 * attack + 0.28 * defense + 0.14 * hp
