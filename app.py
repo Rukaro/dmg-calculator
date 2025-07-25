@@ -90,58 +90,100 @@ class BattleSimulator:
 def main():
     st.title("战斗模拟器")
     
-    # 侧边栏配置
-    st.sidebar.header("配置")
+    # 初始化session_state
+    if 'attacker_count' not in st.session_state:
+        st.session_state.attacker_count = 3
+    if 'defender_count' not in st.session_state:
+        st.session_state.defender_count = 3
     
-    # 角色数量设置
-    attacker_count = st.sidebar.slider("进攻方角色数量", 1, 5, 3)
-    defender_count = st.sidebar.slider("防守方角色数量", 1, 5, 3)
+    # 角色数量控制函数
+    def increase_attackers():
+        if st.session_state.attacker_count < 5:
+            st.session_state.attacker_count += 1
     
-    # 模拟次数
-    simulation_count = st.sidebar.number_input("模拟战斗次数", 1, 10000, 1000)
+    def decrease_attackers():
+        if st.session_state.attacker_count > 1:
+            st.session_state.attacker_count -= 1
     
-    # 主界面 - 上下布局
-    st.header("进攻方")
-    attackers = []
+    def increase_defenders():
+        if st.session_state.defender_count < 5:
+            st.session_state.defender_count += 1
     
-    # 创建5个角色槽位
-    cols = st.columns(5)
-    for i in range(5):
-        with cols[i]:
-            if i < attacker_count:
-                st.subheader(f"角色 {i+1}")
-                attack = st.slider(f"攻击", 100, 2000, 500, key=f"attacker_attack_{i}")
-                defense = st.slider(f"防御", 100, 2000, 400, key=f"attacker_defense_{i}")
-                hp = st.slider(f"生命", 100, 6000, 1500, key=f"attacker_hp_{i}")
-                
-                char = Character(f"进攻方角色{i+1}", attack, defense, hp)
-                attackers.append(char)
-                
-                st.write(f"战力: {char.power:.1f}")
-            else:
-                st.subheader(f"角色 {i+1}")
-                st.write("未启用")
+    def decrease_defenders():
+        if st.session_state.defender_count > 1:
+            st.session_state.defender_count -= 1
     
-    st.header("防守方")
-    defenders = []
+    # 主界面布局
+    col1, col2 = st.columns([3, 1])
     
-    # 创建5个角色槽位
-    cols = st.columns(5)
-    for i in range(5):
-        with cols[i]:
-            if i < defender_count:
-                st.subheader(f"角色 {i+1}")
-                attack = st.slider(f"攻击", 100, 2000, 450, key=f"defender_attack_{i}")
-                defense = st.slider(f"防御", 100, 2000, 500, key=f"defender_defense_{i}")
-                hp = st.slider(f"生命", 100, 6000, 1800, key=f"defender_hp_{i}")
-                
-                char = Character(f"防守方角色{i+1}", attack, defense, hp)
-                defenders.append(char)
-                
-                st.write(f"战力: {char.power:.1f}")
-            else:
-                st.subheader(f"角色 {i+1}")
-                st.write("未启用")
+    with col1:
+        # 进攻方
+        st.header("进攻方")
+        col1_1, col1_2, col1_3, col1_4, col1_5 = st.columns(5)
+        
+        attackers = []
+        for i in range(5):
+            with [col1_1, col1_2, col1_3, col1_4, col1_5][i]:
+                if i < st.session_state.attacker_count:
+                    st.subheader(f"角色 {i+1}")
+                    attack = st.number_input("攻击", 100, 2000, 159, key=f"attacker_attack_{i}")
+                    defense = st.number_input("防御", 100, 2000, 215, key=f"attacker_defense_{i}")
+                    hp = st.number_input("生命", 100, 6000, 423, key=f"attacker_hp_{i}")
+                    
+                    char = Character(f"进攻方角色{i+1}", attack, defense, hp)
+                    attackers.append(char)
+                    
+                    st.write(f"战力: {char.power:.1f}")
+                else:
+                    st.subheader(f"角色 {i+1}")
+                    st.write("➕")
+        
+        # 防守方
+        st.header("防守方")
+        col2_1, col2_2, col2_3, col2_4, col2_5 = st.columns(5)
+        
+        defenders = []
+        for i in range(5):
+            with [col2_1, col2_2, col2_3, col2_4, col2_5][i]:
+                if i < st.session_state.defender_count:
+                    st.subheader(f"角色 {i+1}")
+                    attack = st.number_input("攻击", 100, 2000, 159, key=f"defender_attack_{i}")
+                    defense = st.number_input("防御", 100, 2000, 215, key=f"defender_defense_{i}")
+                    hp = st.number_input("生命", 100, 6000, 423, key=f"defender_hp_{i}")
+                    
+                    char = Character(f"防守方角色{i+1}", attack, defense, hp)
+                    defenders.append(char)
+                    
+                    st.write(f"战力: {char.power:.1f}")
+                else:
+                    st.subheader(f"角色 {i+1}")
+                    st.write("➕")
+    
+    with col2:
+        st.header("模拟次数")
+        simulation_count = st.number_input("", 1, 10000, 1000, key="simulation_count")
+        
+        st.header("角色数量")
+        col_btn1, col_btn2 = st.columns(2)
+        with col_btn1:
+            st.write("进攻方")
+            if st.button("➕", key="add_attacker", on_click=increase_attackers):
+                pass
+            if st.button("➖", key="remove_attacker", on_click=decrease_attackers):
+                pass
+            st.write(f"当前: {st.session_state.attacker_count}")
+        
+        with col_btn2:
+            st.write("防守方")
+            if st.button("➕", key="add_defender", on_click=increase_defenders):
+                pass
+            if st.button("➖", key="remove_defender", on_click=decrease_defenders):
+                pass
+            st.write(f"当前: {st.session_state.defender_count}")
+        
+        st.header("开始模拟")
+        if st.button("模拟战斗", type="primary", key="start_battle"):
+            st.session_state.start_battle = True
     
     # 显示总战力
     attacker_total_power = sum(char.power for char in attackers)
@@ -154,8 +196,8 @@ def main():
     with col2:
         st.metric("防守方总战力", f"{defender_total_power:.1f}")
     
-    # 战斗按钮
-    if st.button("开始模拟战斗", type="primary"):
+    # 战斗结果
+    if st.session_state.get('start_battle', False):
         st.header("战斗结果")
         
         # 进度条
@@ -203,6 +245,9 @@ def main():
         st.write(f"进攻方胜利: {attacker_wins} 次 ({attacker_wins/simulation_count*100:.1f}%)")
         st.write(f"防守方胜利: {defender_wins} 次 ({defender_wins/simulation_count*100:.1f}%)")
         st.write(f"平局: {draws} 次 ({draws/simulation_count*100:.1f}%)")
+        
+        # 重置状态
+        st.session_state.start_battle = False
 
 if __name__ == "__main__":
     main() 
