@@ -17,6 +17,7 @@ st.markdown("""
     margin: 5px;
     min-height: 200px;
     position: relative;
+    overflow: hidden;
 }
 
 .character-card h3 {
@@ -193,6 +194,9 @@ st.markdown("""
     border-radius: 8px;
     padding: 20px;
     margin: 10px 0;
+    position: sticky;
+    top: 20px;
+    height: fit-content;
 }
 
 .control-panel h3 {
@@ -461,14 +465,14 @@ def main():
                     # 攻击
                     st.write("**攻击**")
                     attack = st.number_input("", 100, 2000, st.session_state[f'attacker_attack_{i}'], key=f"attacker_attack_{i}", on_change=sync_attacker_attack_input_to_slider)
-                    col1, col2, col3 = st.columns([1, 4, 1])
-                    with col1:
+                    slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
+                    with slider_col1:
                         if st.button("-", key=f"attacker_attack_minus_{i}"):
                             st.session_state[f'attacker_attack_{i}'] = max(100, st.session_state[f'attacker_attack_{i}'] - 1)
                             st.rerun()
-                    with col2:
+                    with slider_col2:
                         st.slider("", 100, 2000, attack, key=f"attacker_attack_slider_{i}", on_change=sync_attack_slider_to_input)
-                    with col3:
+                    with slider_col3:
                         if st.button("+", key=f"attacker_attack_plus_{i}"):
                             st.session_state[f'attacker_attack_{i}'] = min(2000, st.session_state[f'attacker_attack_{i}'] + 1)
                             st.rerun()
@@ -476,14 +480,14 @@ def main():
                     # 防御
                     st.write("**防御**")
                     defense = st.number_input("", 100, 2000, st.session_state[f'attacker_defense_{i}'], key=f"attacker_defense_{i}", on_change=sync_attacker_defense_input_to_slider)
-                    col1, col2, col3 = st.columns([1, 4, 1])
-                    with col1:
+                    slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
+                    with slider_col1:
                         if st.button("-", key=f"attacker_defense_minus_{i}"):
                             st.session_state[f'attacker_defense_{i}'] = max(100, st.session_state[f'attacker_defense_{i}'] - 1)
                             st.rerun()
-                    with col2:
+                    with slider_col2:
                         st.slider("", 100, 2000, defense, key=f"attacker_defense_slider_{i}", on_change=sync_defense_slider_to_input)
-                    with col3:
+                    with slider_col3:
                         if st.button("+", key=f"attacker_defense_plus_{i}"):
                             st.session_state[f'attacker_defense_{i}'] = min(2000, st.session_state[f'attacker_defense_{i}'] + 1)
                             st.rerun()
@@ -491,14 +495,14 @@ def main():
                     # 生命
                     st.write("**生命**")
                     hp = st.number_input("", 100, 6000, st.session_state[f'attacker_hp_{i}'], key=f"attacker_hp_{i}", on_change=sync_attacker_hp_input_to_slider)
-                    col1, col2, col3 = st.columns([1, 4, 1])
-                    with col1:
+                    slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
+                    with slider_col1:
                         if st.button("-", key=f"attacker_hp_minus_{i}"):
                             st.session_state[f'attacker_hp_{i}'] = max(100, st.session_state[f'attacker_hp_{i}'] - 1)
                             st.rerun()
-                    with col2:
+                    with slider_col2:
                         st.slider("", 100, 6000, hp, key=f"attacker_hp_slider_{i}", on_change=sync_hp_slider_to_input)
-                    with col3:
+                    with slider_col3:
                         if st.button("+", key=f"attacker_hp_plus_{i}"):
                             st.session_state[f'attacker_hp_{i}'] = min(6000, st.session_state[f'attacker_hp_{i}'] + 1)
                             st.rerun()
@@ -532,14 +536,14 @@ def main():
                     # 攻击
                     st.write("**攻击**")
                     attack = st.number_input("", 100, 2000, st.session_state[f'defender_attack_{i}'], key=f"defender_attack_{i}", on_change=sync_defender_attack_input_to_slider)
-                    col1, col2, col3 = st.columns([1, 4, 1])
-                    with col1:
+                    slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
+                    with slider_col1:
                         if st.button("-", key=f"defender_attack_minus_{i}"):
                             st.session_state[f'defender_attack_{i}'] = max(100, st.session_state[f'defender_attack_{i}'] - 1)
                             st.rerun()
-                    with col2:
+                    with slider_col2:
                         st.slider("", 100, 2000, attack, key=f"defender_attack_slider_{i}", on_change=sync_defender_attack_slider_to_input)
-                    with col3:
+                    with slider_col3:
                         if st.button("+", key=f"defender_attack_plus_{i}"):
                             st.session_state[f'defender_attack_{i}'] = min(2000, st.session_state[f'defender_attack_{i}'] + 1)
                             st.rerun()
@@ -547,14 +551,14 @@ def main():
                     # 防御
                     st.write("**防御**")
                     defense = st.number_input("", 100, 2000, st.session_state[f'defender_defense_{i}'], key=f"defender_defense_{i}", on_change=sync_defender_defense_input_to_slider)
-                    col1, col2, col3 = st.columns([1, 4, 1])
-                    with col1:
+                    slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
+                    with slider_col1:
                         if st.button("-", key=f"defender_defense_minus_{i}"):
                             st.session_state[f'defender_defense_{i}'] = max(100, st.session_state[f'defender_defense_{i}'] - 1)
                             st.rerun()
-                    with col2:
+                    with slider_col2:
                         st.slider("", 100, 2000, defense, key=f"defender_defense_slider_{i}", on_change=sync_defender_defense_slider_to_input)
-                    with col3:
+                    with slider_col3:
                         if st.button("+", key=f"defender_defense_plus_{i}"):
                             st.session_state[f'defender_defense_{i}'] = min(2000, st.session_state[f'defender_defense_{i}'] + 1)
                             st.rerun()
@@ -562,14 +566,14 @@ def main():
                     # 生命
                     st.write("**生命**")
                     hp = st.number_input("", 100, 6000, st.session_state[f'defender_hp_{i}'], key=f"defender_hp_{i}", on_change=sync_defender_hp_input_to_slider)
-                    col1, col2, col3 = st.columns([1, 4, 1])
-                    with col1:
+                    slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
+                    with slider_col1:
                         if st.button("-", key=f"defender_hp_minus_{i}"):
                             st.session_state[f'defender_hp_{i}'] = max(100, st.session_state[f'defender_hp_{i}'] - 1)
                             st.rerun()
-                    with col2:
+                    with slider_col2:
                         st.slider("", 100, 6000, hp, key=f"defender_hp_slider_{i}", on_change=sync_defender_hp_slider_to_input)
-                    with col3:
+                    with slider_col3:
                         if st.button("+", key=f"defender_hp_plus_{i}"):
                             st.session_state[f'defender_hp_{i}'] = min(6000, st.session_state[f'defender_hp_{i}'] + 1)
                             st.rerun()
