@@ -1,101 +1,181 @@
 import streamlit as st
 import numpy as np
-import plotly.graph_objects as go
+import random
+import time
 
-def calculate_old_damage(atk, def_, atk_multiplier):
-    return max(0.11 * atk * atk_multiplier - 0.1 * def_, 0) + 70 * atk_multiplier * atk / def_
+class Character:
+    def __init__(self, name, attack, defense, hp):
+        self.name = name
+        self.attack = attack
+        self.defense = defense
+        self.hp = hp
+        self.max_hp = hp
+        self.power = 0.35 * attack + 0.28 * defense + 0.14 * hp
+        self.alive = True
+    
+    def take_damage(self, damage):
+        self.hp = max(0, self.hp - damage)
+        if self.hp <= 0:
+            self.alive = False
+    
+    def heal(self):
+        self.hp = self.max_hp
+        self.alive = True
 
-def calculate_new_damage(atk, def_, atk_multiplier, final_multiplier):
-    return (max(0.11 * atk * atk_multiplier - 0.1 * def_, 0) + 70 * atk_multiplier * atk / def_) * final_multiplier
+class BattleSimulator:
+    def __init__(self, attackers, defenders):
+        self.attackers = attackers
+        self.defenders = defenders
+        self.battle_log = []
+    
+    def calculate_damage(self, attacker, defender):
+        base_damage = max(1, attacker.attack * 0.11 - defender.defense * 0.1)
+        bonus_damage = 70 * attacker.attack / defender.defense
+        return base_damage + bonus_damage
+    
+    def get_alive_characters(self, team):
+        return [char for char in team if char.alive]
+    
+    def simulate_battle(self):
+        # 重置所有角色状态
+        for char in self.attackers + self.defenders:
+            char.heal()
+        
+        self.battle_log = []
+        round_num = 1
+        
+        while True:
+            alive_attackers = self.get_alive_characters(self.attackers)
+            alive_defenders = self.get_alive_characters(self.defenders)
+            
+            # 检查胜负条件
+            if not alive_defenders:
+                self.battle_log.append(f"第{round_num}回合: 进攻方获胜！")
+                return "attackers"
+            if not alive_attackers:
+                self.battle_log.append(f"第{round_num}回合: 防守方获胜！")
+                return "defenders"
+            
+            # 随机选择攻击者和目标
+            attacker = random.choice(alive_attackers)
+            target = random.choice(alive_defenders)
+            
+            # 计算并造成伤害
+            damage = self.calculate_damage(attacker, target)
+            target.take_damage(damage)
+            
+            # 记录战斗日志
+            status = "阵亡" if not target.alive else f"剩余生命值: {target.hp:.1f}"
+            self.battle_log.append(f"第{round_num}回合: {attacker.name} 攻击 {target.name}，造成 {damage:.1f} 伤害，{target.name} {status}")
+            
+            round_num += 1
+            
+            # 防止无限循环
+            if round_num > 1000:
+                self.battle_log.append("战斗超时，判定为平局")
+                return "draw"
 
 def main():
-    st.title("伤害公式对比可视化工具")
+    st.title("战斗模拟器")
     
-    # 初始化session_state
-    if 'old_multiplier' not in st.session_state:
-        st.session_state.old_multiplier = 225
-    if 'new_multiplier' not in st.session_state:
-        st.session_state.new_multiplier = 78
-
-    # 创建参数调整区域
-    col1, col2, col3 = st.columns(3)
+    # 侧边栏配置
+    st.sidebar.header("配置")
+    
+    # 角色数量设置
+    attacker_count = st.sidebar.slider("进攻方角色数量", 1, 5, 3)
+    defender_count = st.sidebar.slider("防守方角色数量", 1, 5, 3)
+    
+    # 模拟次数
+    simulation_count = st.sidebar.number_input("模拟战斗次数", 1, 10000, 1000)
+    
+    # 主界面
+    col1, col2 = st.columns(2)
+    
     with col1:
-        # 使用回调函数更新session_state
-        def update_old_value():
-            if 'old_input' in st.session_state:
-                st.session_state.old_multiplier = st.session_state.old_input
-            if 'old_slider' in st.session_state:
-                st.session_state.old_multiplier = st.session_state.old_slider
-
-        # 创建控件
-        st.slider("旧公式攻击力倍率 (%)", min_value=0, max_value=1000, 
-                 value=st.session_state.old_multiplier, step=1, 
-                 key="old_slider", on_change=update_old_value)
-        st.number_input("", min_value=0, max_value=1000, 
-                       value=st.session_state.old_multiplier, step=1, 
-                       key="old_input", on_change=update_old_value)
-        old_multiplier = st.session_state.old_multiplier / 100
-
+        st.header("进攻方")
+        attackers = []
+        for i in range(attacker_count):
+            st.subheader(f"角色 {i+1}")
+            attack = st.slider(f"攻击力", 0, 1000, 200, key=f"attacker_attack_{i}")
+            defense = st.slider(f"防御力", 0, 1000, 150, key=f"attacker_defense_{i}")
+            hp = st.slider(f"生命值", 0, 2000, 500, key=f"attacker_hp_{i}")
+            
+            char = Character(f"进攻方角色{i+1}", attack, defense, hp)
+            attackers.append(char)
+            
+            st.write(f"战力: {char.power:.1f}")
+    
     with col2:
-        # 使用回调函数更新session_state
-        def update_new_value():
-            if 'new_input' in st.session_state:
-                st.session_state.new_multiplier = st.session_state.new_input
-            if 'new_slider' in st.session_state:
-                st.session_state.new_multiplier = st.session_state.new_slider
-
-        # 创建控件
-        st.slider("新公式攻击力倍率 (%)", min_value=0, max_value=1000, 
-                 value=st.session_state.new_multiplier, step=1, 
-                 key="new_slider", on_change=update_new_value)
-        st.number_input("", min_value=0, max_value=1000, 
-                       value=st.session_state.new_multiplier, step=1, 
-                       key="new_input", on_change=update_new_value)
-        new_multiplier = st.session_state.new_multiplier / 100
-
-    with col3:
-        final_multiplier = st.number_input("新公式最终倍率", min_value=0, max_value=100, value=4, step=1)
-
-    # 创建网格
-    atk_range = np.linspace(0, 1000, 100)
-    def_range = np.linspace(200, 1000, 100)  # 修改防御力范围
-    ATK, DEF = np.meshgrid(atk_range, def_range)
-
-    # 计算伤害差异
-    damage_diff = np.zeros_like(ATK)
-    for i in range(len(atk_range)):
-        for j in range(len(def_range)):
-            old_dmg = calculate_old_damage(ATK[i,j], DEF[i,j], old_multiplier)
-            new_dmg = calculate_new_damage(ATK[i,j], DEF[i,j], new_multiplier, final_multiplier)
-            damage_diff[i,j] = new_dmg - old_dmg
-
-    # 创建热力图
-    fig = go.Figure(data=go.Heatmap(
-        z=damage_diff,
-        x=atk_range,
-        y=def_range,
-        colorscale='RdBu',
-        colorbar=dict(title='伤害差异<br>(新公式 - 旧公式)'),
-        zmid=0,
-        zmin=-600,  # 限制最小值
-        zmax=600    # 限制最大值
-    ))
-
-    fig.update_layout(
-        title='新旧伤害公式差异热力图',
-        xaxis_title='攻击力',
-        yaxis_title='防御力',
-        height=800,
-        width=800
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
-
-    # 显示一些统计信息
-    st.subheader("统计信息")
-    st.write(f"最大伤害差异: {damage_diff.max():.2f}")
-    st.write(f"最小伤害差异: {damage_diff.min():.2f}")
-    st.write(f"平均伤害差异: {damage_diff.mean():.2f}")
+        st.header("防守方")
+        defenders = []
+        for i in range(defender_count):
+            st.subheader(f"角色 {i+1}")
+            attack = st.slider(f"攻击力", 0, 1000, 180, key=f"defender_attack_{i}")
+            defense = st.slider(f"防御力", 0, 1000, 200, key=f"defender_defense_{i}")
+            hp = st.slider(f"生命值", 0, 2000, 600, key=f"defender_hp_{i}")
+            
+            char = Character(f"防守方角色{i+1}", attack, defense, hp)
+            defenders.append(char)
+            
+            st.write(f"战力: {char.power:.1f}")
+    
+    # 显示总战力
+    attacker_total_power = sum(char.power for char in attackers)
+    defender_total_power = sum(char.power for char in defenders)
+    
+    st.header("战力对比")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("进攻方总战力", f"{attacker_total_power:.1f}")
+    with col2:
+        st.metric("防守方总战力", f"{defender_total_power:.1f}")
+    
+    # 战斗按钮
+    if st.button("开始模拟战斗", type="primary"):
+        st.header("战斗结果")
+        
+        # 进度条
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        
+        attacker_wins = 0
+        defender_wins = 0
+        draws = 0
+        
+        for i in range(simulation_count):
+            # 更新进度
+            progress = (i + 1) / simulation_count
+            progress_bar.progress(progress)
+            status_text.text(f"模拟进度: {i+1}/{simulation_count}")
+            
+            # 创建新的模拟器实例
+            simulator = BattleSimulator(attackers.copy(), defenders.copy())
+            result = simulator.simulate_battle()
+            
+            if result == "attackers":
+                attacker_wins += 1
+            elif result == "defenders":
+                defender_wins += 1
+            else:
+                draws += 1
+        
+        # 显示结果
+        st.success("模拟完成！")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("进攻方胜率", f"{attacker_wins/simulation_count*100:.1f}%", f"{attacker_wins}胜")
+        with col2:
+            st.metric("防守方胜率", f"{defender_wins/simulation_count*100:.1f}%", f"{defender_wins}胜")
+        with col3:
+            st.metric("平局率", f"{draws/simulation_count*100:.1f}%", f"{draws}平")
+        
+        # 显示详细统计
+        st.subheader("详细统计")
+        st.write(f"总模拟次数: {simulation_count}")
+        st.write(f"进攻方胜利: {attacker_wins} 次 ({attacker_wins/simulation_count*100:.1f}%)")
+        st.write(f"防守方胜利: {defender_wins} 次 ({defender_wins/simulation_count*100:.1f}%)")
+        st.write(f"平局: {draws} 次 ({draws/simulation_count*100:.1f}%)")
 
 if __name__ == "__main__":
     main() 
