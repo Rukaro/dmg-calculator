@@ -264,18 +264,42 @@ st.markdown("""
 
 <script>
 function updateValue(key, value) {
-    // 这里需要通过Streamlit的session_state更新值
+    // 通过Streamlit的session_state更新值
     // 由于JavaScript无法直接访问Python的session_state，
-    // 我们需要通过其他方式处理，比如重新加载页面
+    // 我们需要通过其他方式处理
+    console.log('Updating', key, 'to', value);
+    // 这里可以通过Streamlit的组件通信或其他方式
     window.location.reload();
 }
 
 function adjustValue(key, delta) {
-    // 这里需要通过Streamlit的session_state更新值
-    // 由于JavaScript无法直接访问Python的session_state，
-    // 我们需要通过其他方式处理，比如重新加载页面
+    // 通过Streamlit的session_state更新值
+    console.log('Adjusting', key, 'by', delta);
+    // 这里可以通过Streamlit的组件通信或其他方式
     window.location.reload();
 }
+
+// 添加事件监听器来处理滑动条变化
+document.addEventListener('DOMContentLoaded', function() {
+    const sliders = document.querySelectorAll('.slider');
+    sliders.forEach(slider => {
+        slider.addEventListener('change', function() {
+            const key = this.getAttribute('data-key');
+            const value = this.value;
+            updateValue(key, value);
+        });
+    });
+    
+    const buttons = document.querySelectorAll('.slider-minus, .slider-plus');
+    buttons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const key = this.getAttribute('data-key');
+            const delta = this.classList.contains('slider-minus') ? -1 : 1;
+            adjustValue(key, delta);
+        });
+    });
+});
 </script>
 """, unsafe_allow_html=True)
 
@@ -399,62 +423,36 @@ def main():
         if st.session_state.defender_count > 1:
             st.session_state.defender_count -= 1
     
-    # 双向同步回调函数
-    def sync_attack_slider_to_input():
+    # 滑动条回调函数
+    def update_attack_slider():
         for i in range(5):
             if f'attacker_attack_slider_{i}' in st.session_state:
                 st.session_state[f'attacker_attack_{i}'] = st.session_state[f'attacker_attack_slider_{i}']
     
-    def sync_defense_slider_to_input():
+    def update_defense_slider():
         for i in range(5):
             if f'attacker_defense_slider_{i}' in st.session_state:
                 st.session_state[f'attacker_defense_{i}'] = st.session_state[f'attacker_defense_slider_{i}']
     
-    def sync_hp_slider_to_input():
+    def update_hp_slider():
         for i in range(5):
             if f'attacker_hp_slider_{i}' in st.session_state:
                 st.session_state[f'attacker_hp_{i}'] = st.session_state[f'attacker_hp_slider_{i}']
     
-    def sync_defender_attack_slider_to_input():
+    def update_defender_attack_slider():
         for i in range(5):
             if f'defender_attack_slider_{i}' in st.session_state:
                 st.session_state[f'defender_attack_{i}'] = st.session_state[f'defender_attack_slider_{i}']
     
-    def sync_defender_defense_slider_to_input():
+    def update_defender_defense_slider():
         for i in range(5):
             if f'defender_defense_slider_{i}' in st.session_state:
                 st.session_state[f'defender_defense_{i}'] = st.session_state[f'defender_defense_slider_{i}']
     
-    def sync_defender_hp_slider_to_input():
+    def update_defender_hp_slider():
         for i in range(5):
             if f'defender_hp_slider_{i}' in st.session_state:
                 st.session_state[f'defender_hp_{i}'] = st.session_state[f'defender_hp_slider_{i}']
-    
-    # 数字输入框同步到滑动条的回调函数
-    def sync_input_to_slider(key_prefix):
-        for i in range(5):
-            if f'{key_prefix}_{i}' in st.session_state:
-                slider_key = f'{key_prefix}_slider_{i}'
-                if slider_key in st.session_state:
-                    st.session_state[slider_key] = st.session_state[f'{key_prefix}_{i}']
-    
-    def sync_attacker_attack_input_to_slider():
-        sync_input_to_slider('attacker_attack')
-    
-    def sync_attacker_defense_input_to_slider():
-        sync_input_to_slider('attacker_defense')
-    
-    def sync_attacker_hp_input_to_slider():
-        sync_input_to_slider('attacker_hp')
-    
-    def sync_defender_attack_input_to_slider():
-        sync_input_to_slider('defender_attack')
-    
-    def sync_defender_defense_input_to_slider():
-        sync_input_to_slider('defender_defense')
-    
-    def sync_defender_hp_input_to_slider():
-        sync_input_to_slider('defender_hp')
     
     # 主界面布局 - 使用更宽的布局
     col1, col2 = st.columns([5, 1])
@@ -463,64 +461,64 @@ def main():
         # 进攻方
         st.markdown('<div class="section-header"><h2>进攻方</h2></div>', unsafe_allow_html=True)
         
-        # 创建角色卡片 - 使用简化的Streamlit组件
+        # 创建角色卡片 - 使用最简单的Streamlit组件
         cols = st.columns(5)
         for i in range(5):
             with cols[i]:
                 if i < st.session_state.attacker_count:
-                    # 使用简化的Streamlit组件
+                    # 使用最简单的Streamlit组件
                     st.markdown(f'<div class="character-card"><h3>角色{i+1}</h3>', unsafe_allow_html=True)
                     
                     # 攻击
-                    st.markdown('<div class="attribute-section">', unsafe_allow_html=True)
                     attack = st.session_state[f'attacker_attack_{i}']
                     st.markdown(f'<div class="attribute-row"><span class="attribute-label">攻击</span><span class="attribute-value">{attack}</span></div>', unsafe_allow_html=True)
-                    slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
-                    with slider_col1:
+                    
+                    # 攻击控制
+                    col1, col2, col3 = st.columns([1, 4, 1])
+                    with col1:
                         if st.button("-", key=f"attacker_attack_minus_{i}"):
                             st.session_state[f'attacker_attack_{i}'] = max(100, st.session_state[f'attacker_attack_{i}'] - 1)
                             st.rerun()
-                    with slider_col2:
-                        st.slider("", 100, 2000, attack, key=f"attacker_attack_slider_{i}", on_change=sync_attack_slider_to_input)
-                    with slider_col3:
+                    with col2:
+                        st.slider("", 100, 2000, attack, key=f"attacker_attack_slider_{i}", on_change=update_attack_slider)
+                    with col3:
                         if st.button("+", key=f"attacker_attack_plus_{i}"):
                             st.session_state[f'attacker_attack_{i}'] = min(2000, st.session_state[f'attacker_attack_{i}'] + 1)
                             st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
                     
                     # 防御
-                    st.markdown('<div class="attribute-section">', unsafe_allow_html=True)
                     defense = st.session_state[f'attacker_defense_{i}']
                     st.markdown(f'<div class="attribute-row"><span class="attribute-label">防御</span><span class="attribute-value">{defense}</span></div>', unsafe_allow_html=True)
-                    slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
-                    with slider_col1:
+                    
+                    # 防御控制
+                    col1, col2, col3 = st.columns([1, 4, 1])
+                    with col1:
                         if st.button("-", key=f"attacker_defense_minus_{i}"):
                             st.session_state[f'attacker_defense_{i}'] = max(100, st.session_state[f'attacker_defense_{i}'] - 1)
                             st.rerun()
-                    with slider_col2:
-                        st.slider("", 100, 2000, defense, key=f"attacker_defense_slider_{i}", on_change=sync_defense_slider_to_input)
-                    with slider_col3:
+                    with col2:
+                        st.slider("", 100, 2000, defense, key=f"attacker_defense_slider_{i}", on_change=update_defense_slider)
+                    with col3:
                         if st.button("+", key=f"attacker_defense_plus_{i}"):
                             st.session_state[f'attacker_defense_{i}'] = min(2000, st.session_state[f'attacker_defense_{i}'] + 1)
                             st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
                     
                     # 生命
-                    st.markdown('<div class="attribute-section">', unsafe_allow_html=True)
                     hp = st.session_state[f'attacker_hp_{i}']
                     st.markdown(f'<div class="attribute-row"><span class="attribute-label">生命</span><span class="attribute-value">{hp}</span></div>', unsafe_allow_html=True)
-                    slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
-                    with slider_col1:
+                    
+                    # 生命控制
+                    col1, col2, col3 = st.columns([1, 4, 1])
+                    with col1:
                         if st.button("-", key=f"attacker_hp_minus_{i}"):
                             st.session_state[f'attacker_hp_{i}'] = max(100, st.session_state[f'attacker_hp_{i}'] - 1)
                             st.rerun()
-                    with slider_col2:
-                        st.slider("", 100, 6000, hp, key=f"attacker_hp_slider_{i}", on_change=sync_hp_slider_to_input)
-                    with slider_col3:
+                    with col2:
+                        st.slider("", 100, 6000, hp, key=f"attacker_hp_slider_{i}", on_change=update_hp_slider)
+                    with col3:
                         if st.button("+", key=f"attacker_hp_plus_{i}"):
                             st.session_state[f'attacker_hp_{i}'] = min(6000, st.session_state[f'attacker_hp_{i}'] + 1)
                             st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
                     
                     # 计算战力
                     power = 0.35 * attack + 0.28 * defense + 0.14 * hp
@@ -540,64 +538,64 @@ def main():
         # 防守方
         st.markdown('<div class="section-header"><h2>防守方</h2></div>', unsafe_allow_html=True)
         
-        # 创建角色卡片 - 使用简化的Streamlit组件
+        # 创建角色卡片 - 使用最简单的Streamlit组件
         cols = st.columns(5)
         for i in range(5):
             with cols[i]:
                 if i < st.session_state.defender_count:
-                    # 使用简化的Streamlit组件
+                    # 使用最简单的Streamlit组件
                     st.markdown(f'<div class="character-card"><h3>角色{i+1}</h3>', unsafe_allow_html=True)
                     
                     # 攻击
-                    st.markdown('<div class="attribute-section">', unsafe_allow_html=True)
                     attack = st.session_state[f'defender_attack_{i}']
                     st.markdown(f'<div class="attribute-row"><span class="attribute-label">攻击</span><span class="attribute-value">{attack}</span></div>', unsafe_allow_html=True)
-                    slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
-                    with slider_col1:
+                    
+                    # 攻击控制
+                    col1, col2, col3 = st.columns([1, 4, 1])
+                    with col1:
                         if st.button("-", key=f"defender_attack_minus_{i}"):
                             st.session_state[f'defender_attack_{i}'] = max(100, st.session_state[f'defender_attack_{i}'] - 1)
                             st.rerun()
-                    with slider_col2:
-                        st.slider("", 100, 2000, attack, key=f"defender_attack_slider_{i}", on_change=sync_defender_attack_slider_to_input)
-                    with slider_col3:
+                    with col2:
+                        st.slider("", 100, 2000, attack, key=f"defender_attack_slider_{i}", on_change=update_defender_attack_slider)
+                    with col3:
                         if st.button("+", key=f"defender_attack_plus_{i}"):
                             st.session_state[f'defender_attack_{i}'] = min(2000, st.session_state[f'defender_attack_{i}'] + 1)
                             st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
                     
                     # 防御
-                    st.markdown('<div class="attribute-section">', unsafe_allow_html=True)
                     defense = st.session_state[f'defender_defense_{i}']
                     st.markdown(f'<div class="attribute-row"><span class="attribute-label">防御</span><span class="attribute-value">{defense}</span></div>', unsafe_allow_html=True)
-                    slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
-                    with slider_col1:
+                    
+                    # 防御控制
+                    col1, col2, col3 = st.columns([1, 4, 1])
+                    with col1:
                         if st.button("-", key=f"defender_defense_minus_{i}"):
                             st.session_state[f'defender_defense_{i}'] = max(100, st.session_state[f'defender_defense_{i}'] - 1)
                             st.rerun()
-                    with slider_col2:
-                        st.slider("", 100, 2000, defense, key=f"defender_defense_slider_{i}", on_change=sync_defender_defense_slider_to_input)
-                    with slider_col3:
+                    with col2:
+                        st.slider("", 100, 2000, defense, key=f"defender_defense_slider_{i}", on_change=update_defender_defense_slider)
+                    with col3:
                         if st.button("+", key=f"defender_defense_plus_{i}"):
                             st.session_state[f'defender_defense_{i}'] = min(2000, st.session_state[f'defender_defense_{i}'] + 1)
                             st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
                     
                     # 生命
-                    st.markdown('<div class="attribute-section">', unsafe_allow_html=True)
                     hp = st.session_state[f'defender_hp_{i}']
                     st.markdown(f'<div class="attribute-row"><span class="attribute-label">生命</span><span class="attribute-value">{hp}</span></div>', unsafe_allow_html=True)
-                    slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
-                    with slider_col1:
+                    
+                    # 生命控制
+                    col1, col2, col3 = st.columns([1, 4, 1])
+                    with col1:
                         if st.button("-", key=f"defender_hp_minus_{i}"):
                             st.session_state[f'defender_hp_{i}'] = max(100, st.session_state[f'defender_hp_{i}'] - 1)
                             st.rerun()
-                    with slider_col2:
-                        st.slider("", 100, 6000, hp, key=f"defender_hp_slider_{i}", on_change=sync_defender_hp_slider_to_input)
-                    with slider_col3:
+                    with col2:
+                        st.slider("", 100, 6000, hp, key=f"defender_hp_slider_{i}", on_change=update_defender_hp_slider)
+                    with col3:
                         if st.button("+", key=f"defender_hp_plus_{i}"):
                             st.session_state[f'defender_hp_{i}'] = min(6000, st.session_state[f'defender_hp_{i}'] + 1)
                             st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
                     
                     # 计算战力
                     power = 0.35 * attack + 0.28 * defense + 0.14 * hp
