@@ -56,17 +56,55 @@ class BattleSimulator:
                 self.battle_log.append(f"第{round_num}回合: 防守方获胜！")
                 return "defenders"
             
-            # 随机选择攻击者和目标
-            attacker = random.choice(alive_attackers)
-            target = random.choice(alive_defenders)
-            
-            # 计算并造成伤害
-            damage = self.calculate_damage(attacker, target)
-            target.take_damage(damage)
-            
-            # 记录战斗日志
-            status = "阵亡" if not target.alive else f"剩余生命值: {target.hp:.1f}"
-            self.battle_log.append(f"第{round_num}回合: {attacker.name} 攻击 {target.name}，造成 {damage:.1f} 伤害，{target.name} {status}")
+            # 随机决定哪一方先攻击
+            if random.choice([True, False]):  # 50%概率进攻方先攻击
+                # 进攻方攻击
+                if alive_attackers:
+                    attacker = random.choice(alive_attackers)
+                    target = random.choice(alive_defenders)
+                    damage = self.calculate_damage(attacker, target)
+                    target.take_damage(damage)
+                    status = "阵亡" if not target.alive else f"剩余生命值: {target.hp:.1f}"
+                    self.battle_log.append(f"第{round_num}回合: {attacker.name} 攻击 {target.name}，造成 {damage:.1f} 伤害，{target.name} {status}")
+                
+                # 检查防守方是否全部阵亡
+                alive_defenders = self.get_alive_characters(self.defenders)
+                if not alive_defenders:
+                    self.battle_log.append(f"第{round_num}回合: 进攻方获胜！")
+                    return "attackers"
+                
+                # 防守方反击
+                if alive_defenders:
+                    attacker = random.choice(alive_defenders)
+                    target = random.choice(alive_attackers)
+                    damage = self.calculate_damage(attacker, target)
+                    target.take_damage(damage)
+                    status = "阵亡" if not target.alive else f"剩余生命值: {target.hp:.1f}"
+                    self.battle_log.append(f"第{round_num}回合: {attacker.name} 反击 {target.name}，造成 {damage:.1f} 伤害，{target.name} {status}")
+            else:
+                # 防守方先攻击
+                if alive_defenders:
+                    attacker = random.choice(alive_defenders)
+                    target = random.choice(alive_attackers)
+                    damage = self.calculate_damage(attacker, target)
+                    target.take_damage(damage)
+                    status = "阵亡" if not target.alive else f"剩余生命值: {target.hp:.1f}"
+                    self.battle_log.append(f"第{round_num}回合: {attacker.name} 攻击 {target.name}，造成 {damage:.1f} 伤害，{target.name} {status}")
+                
+                # 检查进攻方是否全部阵亡
+                alive_attackers = self.get_alive_characters(self.attackers)
+                if not alive_attackers:
+                    self.battle_log.append(f"第{round_num}回合: 防守方获胜！")
+                    return "defenders"
+                
+                # 进攻方反击
+                if alive_attackers:
+                    attacker = random.choice(alive_attackers)
+                    target = random.choice(alive_defenders)
+                    damage = self.calculate_damage(attacker, target)
+                    target.take_damage(damage)
+                    status = "阵亡" if not target.alive else f"剩余生命值: {target.hp:.1f}"
+                    self.battle_log.append(f"第{round_num}回合: {attacker.name} 反击 {target.name}，造成 {damage:.1f} 伤害，{target.name} {status}")
             
             round_num += 1
             
