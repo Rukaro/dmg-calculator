@@ -88,36 +88,48 @@ def main():
     # 模拟次数
     simulation_count = st.sidebar.number_input("模拟战斗次数", 1, 10000, 1000)
     
-    # 主界面
-    col1, col2 = st.columns(2)
+    # 主界面 - 上下布局
+    st.header("进攻方")
+    attackers = []
     
-    with col1:
-        st.header("进攻方")
-        attackers = []
-        for i in range(attacker_count):
-            st.subheader(f"角色 {i+1}")
-            attack = st.slider(f"攻击力", 0, 1000, 200, key=f"attacker_attack_{i}")
-            defense = st.slider(f"防御力", 0, 1000, 150, key=f"attacker_defense_{i}")
-            hp = st.slider(f"生命值", 0, 2000, 500, key=f"attacker_hp_{i}")
-            
-            char = Character(f"进攻方角色{i+1}", attack, defense, hp)
-            attackers.append(char)
-            
-            st.write(f"战力: {char.power:.1f}")
+    # 创建5个角色槽位
+    cols = st.columns(5)
+    for i in range(5):
+        with cols[i]:
+            if i < attacker_count:
+                st.subheader(f"角色 {i+1}")
+                attack = st.slider(f"攻击", 100, 2000, 500, key=f"attacker_attack_{i}")
+                defense = st.slider(f"防御", 100, 2000, 400, key=f"attacker_defense_{i}")
+                hp = st.slider(f"生命", 100, 6000, 1500, key=f"attacker_hp_{i}")
+                
+                char = Character(f"进攻方角色{i+1}", attack, defense, hp)
+                attackers.append(char)
+                
+                st.write(f"战力: {char.power:.1f}")
+            else:
+                st.subheader(f"角色 {i+1}")
+                st.write("未启用")
     
-    with col2:
-        st.header("防守方")
-        defenders = []
-        for i in range(defender_count):
-            st.subheader(f"角色 {i+1}")
-            attack = st.slider(f"攻击力", 0, 1000, 180, key=f"defender_attack_{i}")
-            defense = st.slider(f"防御力", 0, 1000, 200, key=f"defender_defense_{i}")
-            hp = st.slider(f"生命值", 0, 2000, 600, key=f"defender_hp_{i}")
-            
-            char = Character(f"防守方角色{i+1}", attack, defense, hp)
-            defenders.append(char)
-            
-            st.write(f"战力: {char.power:.1f}")
+    st.header("防守方")
+    defenders = []
+    
+    # 创建5个角色槽位
+    cols = st.columns(5)
+    for i in range(5):
+        with cols[i]:
+            if i < defender_count:
+                st.subheader(f"角色 {i+1}")
+                attack = st.slider(f"攻击", 100, 2000, 450, key=f"defender_attack_{i}")
+                defense = st.slider(f"防御", 100, 2000, 500, key=f"defender_defense_{i}")
+                hp = st.slider(f"生命", 100, 6000, 1800, key=f"defender_hp_{i}")
+                
+                char = Character(f"防守方角色{i+1}", attack, defense, hp)
+                defenders.append(char)
+                
+                st.write(f"战力: {char.power:.1f}")
+            else:
+                st.subheader(f"角色 {i+1}")
+                st.write("未启用")
     
     # 显示总战力
     attacker_total_power = sum(char.power for char in attackers)
