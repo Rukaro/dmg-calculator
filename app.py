@@ -48,48 +48,98 @@ st.markdown("""
     background-color: #c82333;
 }
 
-.attribute-group {
-    margin-bottom: 15px;
+.attribute-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 10px;
 }
 
 .attribute-label {
     font-weight: bold;
     color: #6c757d;
-    margin-bottom: 5px;
+    min-width: 40px;
 }
 
-.attribute-input {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 5px;
-}
-
-.attribute-input input {
-    flex: 1;
+.attribute-value {
+    background-color: white;
     border: 1px solid #ced4da;
     border-radius: 4px;
     padding: 4px 8px;
+    min-width: 60px;
     text-align: center;
+    font-size: 14px;
 }
 
-.attribute-input button {
+.slider-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.slider-minus {
     background-color: #6c757d;
     color: white;
     border: none;
     border-radius: 4px;
-    width: 30px;
-    height: 30px;
-    font-size: 16px;
+    width: 25px;
+    height: 25px;
+    font-size: 14px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.attribute-input button:hover {
+.slider-minus:hover {
     background-color: #5a6268;
 }
 
-.slider-container {
-    margin-top: 5px;
+.slider-plus {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    width: 25px;
+    height: 25px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.slider-plus:hover {
+    background-color: #5a6268;
+}
+
+.slider {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: #e9ecef;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #6c757d;
+    cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #6c757d;
+    cursor: pointer;
+    border: none;
 }
 
 .empty-slot {
@@ -274,6 +324,59 @@ class BattleSimulator:
                 self.battle_log.append("战斗超时，判定为平局")
                 return "draw"
 
+def create_character_card(character_index, side, is_active=True):
+    """创建角色卡片HTML"""
+    if is_active:
+        # 获取当前值
+        attack_key = f"{side}_attack_{character_index}"
+        defense_key = f"{side}_defense_{character_index}"
+        hp_key = f"{side}_hp_{character_index}"
+        
+        attack = st.session_state.get(attack_key, 159)
+        defense = st.session_state.get(defense_key, 215)
+        hp = st.session_state.get(hp_key, 423)
+        
+        # 计算战力
+        power = 0.35 * attack + 0.28 * defense + 0.14 * hp
+        
+        return f"""
+        <div class="character-card">
+            <h3>角色{character_index + 1}</h3>
+            <div class="attribute-row">
+                <span class="attribute-label">攻击</span>
+                <span class="attribute-value">{attack}</span>
+            </div>
+            <div class="slider-container">
+                <button class="slider-minus" onclick="adjustValue('{attack_key}', -1)">-</button>
+                <input type="range" class="slider" min="100" max="2000" value="{attack}" 
+                       onchange="updateValue('{attack_key}', this.value)" />
+                <button class="slider-plus" onclick="adjustValue('{attack_key}', 1)">+</button>
+            </div>
+            <div class="attribute-row">
+                <span class="attribute-label">防御</span>
+                <span class="attribute-value">{defense}</span>
+            </div>
+            <div class="slider-container">
+                <button class="slider-minus" onclick="adjustValue('{defense_key}', -1)">-</button>
+                <input type="range" class="slider" min="100" max="2000" value="{defense}" 
+                       onchange="updateValue('{defense_key}', this.value)" />
+                <button class="slider-plus" onclick="adjustValue('{defense_key}', 1)">+</button>
+            </div>
+            <div class="attribute-row">
+                <span class="attribute-label">生命</span>
+                <span class="attribute-value">{hp}</span>
+            </div>
+            <div class="slider-container">
+                <button class="slider-minus" onclick="adjustValue('{hp_key}', -1)">-</button>
+                <input type="range" class="slider" min="100" max="6000" value="{hp}" 
+                       onchange="updateValue('{hp_key}', this.value)" />
+                <button class="slider-plus" onclick="adjustValue('{hp_key}', 1)">+</button>
+            </div>
+        </div>
+        """
+    else:
+        return '<div class="empty-slot">+</div>'
+
 def main():
     st.title("战斗模拟器")
     
@@ -331,17 +434,77 @@ def main():
                             remove_attacker()
                             st.rerun()
                     
-                    # 攻击
-                    attack = st.number_input("攻击", 100, 2000, st.session_state[f'attacker_attack_{i}'], key=f"attacker_attack_{i}")
-                    attack_slider = st.slider("", 100, 2000, attack, key=f"attacker_attack_slider_{i}")
+                    # 攻击行
+                    col1, col2 = st.columns([1, 2])
+                    with col1:
+                        st.write("**攻击**")
+                    with col2:
+                        attack = st.number_input("", 100, 2000, st.session_state[f'attacker_attack_{i}'], key=f"attacker_attack_{i}")
                     
-                    # 防御
-                    defense = st.number_input("防御", 100, 2000, st.session_state[f'attacker_defense_{i}'], key=f"attacker_defense_{i}")
-                    defense_slider = st.slider("", 100, 2000, defense, key=f"attacker_defense_slider_{i}")
+                    # 攻击滑动条
+                    col1, col2, col3 = st.columns([1, 4, 1])
+                    with col1:
+                        if st.button("-", key=f"attacker_attack_minus_{i}"):
+                            st.session_state[f'attacker_attack_{i}'] = max(100, st.session_state[f'attacker_attack_{i}'] - 1)
+                            st.rerun()
+                    with col2:
+                        attack_slider = st.slider("", 100, 2000, attack, key=f"attacker_attack_slider_{i}")
+                        # 同步滑动条值到数字输入框
+                        if attack_slider != attack:
+                            st.session_state[f'attacker_attack_{i}'] = attack_slider
+                            st.rerun()
+                    with col3:
+                        if st.button("+", key=f"attacker_attack_plus_{i}"):
+                            st.session_state[f'attacker_attack_{i}'] = min(2000, st.session_state[f'attacker_attack_{i}'] + 1)
+                            st.rerun()
                     
-                    # 生命
-                    hp = st.number_input("生命", 100, 6000, st.session_state[f'attacker_hp_{i}'], key=f"attacker_hp_{i}")
-                    hp_slider = st.slider("", 100, 6000, hp, key=f"attacker_hp_slider_{i}")
+                    # 防御行
+                    col1, col2 = st.columns([1, 2])
+                    with col1:
+                        st.write("**防御**")
+                    with col2:
+                        defense = st.number_input("", 100, 2000, st.session_state[f'attacker_defense_{i}'], key=f"attacker_defense_{i}")
+                    
+                    # 防御滑动条
+                    col1, col2, col3 = st.columns([1, 4, 1])
+                    with col1:
+                        if st.button("-", key=f"attacker_defense_minus_{i}"):
+                            st.session_state[f'attacker_defense_{i}'] = max(100, st.session_state[f'attacker_defense_{i}'] - 1)
+                            st.rerun()
+                    with col2:
+                        defense_slider = st.slider("", 100, 2000, defense, key=f"attacker_defense_slider_{i}")
+                        # 同步滑动条值到数字输入框
+                        if defense_slider != defense:
+                            st.session_state[f'attacker_defense_{i}'] = defense_slider
+                            st.rerun()
+                    with col3:
+                        if st.button("+", key=f"attacker_defense_plus_{i}"):
+                            st.session_state[f'attacker_defense_{i}'] = min(2000, st.session_state[f'attacker_defense_{i}'] + 1)
+                            st.rerun()
+                    
+                    # 生命行
+                    col1, col2 = st.columns([1, 2])
+                    with col1:
+                        st.write("**生命**")
+                    with col2:
+                        hp = st.number_input("", 100, 6000, st.session_state[f'attacker_hp_{i}'], key=f"attacker_hp_{i}")
+                    
+                    # 生命滑动条
+                    col1, col2, col3 = st.columns([1, 4, 1])
+                    with col1:
+                        if st.button("-", key=f"attacker_hp_minus_{i}"):
+                            st.session_state[f'attacker_hp_{i}'] = max(100, st.session_state[f'attacker_hp_{i}'] - 1)
+                            st.rerun()
+                    with col2:
+                        hp_slider = st.slider("", 100, 6000, hp, key=f"attacker_hp_slider_{i}")
+                        # 同步滑动条值到数字输入框
+                        if hp_slider != hp:
+                            st.session_state[f'attacker_hp_{i}'] = hp_slider
+                            st.rerun()
+                    with col3:
+                        if st.button("+", key=f"attacker_hp_plus_{i}"):
+                            st.session_state[f'attacker_hp_{i}'] = min(6000, st.session_state[f'attacker_hp_{i}'] + 1)
+                            st.rerun()
                     
                     # 计算战力
                     power = 0.35 * attack + 0.28 * defense + 0.14 * hp
@@ -369,17 +532,77 @@ def main():
                             remove_defender()
                             st.rerun()
                     
-                    # 攻击
-                    attack = st.number_input("攻击", 100, 2000, st.session_state[f'defender_attack_{i}'], key=f"defender_attack_{i}")
-                    attack_slider = st.slider("", 100, 2000, attack, key=f"defender_attack_slider_{i}")
+                    # 攻击行
+                    col1, col2 = st.columns([1, 2])
+                    with col1:
+                        st.write("**攻击**")
+                    with col2:
+                        attack = st.number_input("", 100, 2000, st.session_state[f'defender_attack_{i}'], key=f"defender_attack_{i}")
                     
-                    # 防御
-                    defense = st.number_input("防御", 100, 2000, st.session_state[f'defender_defense_{i}'], key=f"defender_defense_{i}")
-                    defense_slider = st.slider("", 100, 2000, defense, key=f"defender_defense_slider_{i}")
+                    # 攻击滑动条
+                    col1, col2, col3 = st.columns([1, 4, 1])
+                    with col1:
+                        if st.button("-", key=f"defender_attack_minus_{i}"):
+                            st.session_state[f'defender_attack_{i}'] = max(100, st.session_state[f'defender_attack_{i}'] - 1)
+                            st.rerun()
+                    with col2:
+                        attack_slider = st.slider("", 100, 2000, attack, key=f"defender_attack_slider_{i}")
+                        # 同步滑动条值到数字输入框
+                        if attack_slider != attack:
+                            st.session_state[f'defender_attack_{i}'] = attack_slider
+                            st.rerun()
+                    with col3:
+                        if st.button("+", key=f"defender_attack_plus_{i}"):
+                            st.session_state[f'defender_attack_{i}'] = min(2000, st.session_state[f'defender_attack_{i}'] + 1)
+                            st.rerun()
                     
-                    # 生命
-                    hp = st.number_input("生命", 100, 6000, st.session_state[f'defender_hp_{i}'], key=f"defender_hp_{i}")
-                    hp_slider = st.slider("", 100, 6000, hp, key=f"defender_hp_slider_{i}")
+                    # 防御行
+                    col1, col2 = st.columns([1, 2])
+                    with col1:
+                        st.write("**防御**")
+                    with col2:
+                        defense = st.number_input("", 100, 2000, st.session_state[f'defender_defense_{i}'], key=f"defender_defense_{i}")
+                    
+                    # 防御滑动条
+                    col1, col2, col3 = st.columns([1, 4, 1])
+                    with col1:
+                        if st.button("-", key=f"defender_defense_minus_{i}"):
+                            st.session_state[f'defender_defense_{i}'] = max(100, st.session_state[f'defender_defense_{i}'] - 1)
+                            st.rerun()
+                    with col2:
+                        defense_slider = st.slider("", 100, 2000, defense, key=f"defender_defense_slider_{i}")
+                        # 同步滑动条值到数字输入框
+                        if defense_slider != defense:
+                            st.session_state[f'defender_defense_{i}'] = defense_slider
+                            st.rerun()
+                    with col3:
+                        if st.button("+", key=f"defender_defense_plus_{i}"):
+                            st.session_state[f'defender_defense_{i}'] = min(2000, st.session_state[f'defender_defense_{i}'] + 1)
+                            st.rerun()
+                    
+                    # 生命行
+                    col1, col2 = st.columns([1, 2])
+                    with col1:
+                        st.write("**生命**")
+                    with col2:
+                        hp = st.number_input("", 100, 6000, st.session_state[f'defender_hp_{i}'], key=f"defender_hp_{i}")
+                    
+                    # 生命滑动条
+                    col1, col2, col3 = st.columns([1, 4, 1])
+                    with col1:
+                        if st.button("-", key=f"defender_hp_minus_{i}"):
+                            st.session_state[f'defender_hp_{i}'] = max(100, st.session_state[f'defender_hp_{i}'] - 1)
+                            st.rerun()
+                    with col2:
+                        hp_slider = st.slider("", 100, 6000, hp, key=f"defender_hp_slider_{i}")
+                        # 同步滑动条值到数字输入框
+                        if hp_slider != hp:
+                            st.session_state[f'defender_hp_{i}'] = hp_slider
+                            st.rerun()
+                    with col3:
+                        if st.button("+", key=f"defender_hp_plus_{i}"):
+                            st.session_state[f'defender_hp_{i}'] = min(6000, st.session_state[f'defender_hp_{i}'] + 1)
+                            st.rerun()
                     
                     # 计算战力
                     power = 0.35 * attack + 0.28 * defense + 0.14 * hp
