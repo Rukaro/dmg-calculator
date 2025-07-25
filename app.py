@@ -52,24 +52,25 @@ st.markdown("""
 .attribute-row {
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
-    gap: 10px;
+    justify-content: space-between;
+    margin-bottom: 8px;
 }
 
 .attribute-label {
     font-weight: bold;
-    color: #6c757d;
-    min-width: 40px;
+    color: #495057;
+    font-size: 14px;
 }
 
 .attribute-value {
-    background-color: white;
-    border: 1px solid #ced4da;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
     border-radius: 4px;
     padding: 4px 8px;
     min-width: 60px;
     text-align: center;
     font-size: 14px;
+    color: #495057;
 }
 
 .slider-container {
@@ -472,8 +473,8 @@ def main():
                     
                     # 攻击
                     st.markdown('<div class="attribute-section">', unsafe_allow_html=True)
-                    st.write("**攻击**")
-                    attack = st.number_input("", 100, 2000, st.session_state[f'attacker_attack_{i}'], key=f"attacker_attack_{i}", on_change=sync_attacker_attack_input_to_slider)
+                    attack = st.session_state[f'attacker_attack_{i}']
+                    st.markdown(f'<div class="attribute-row"><span class="attribute-label">攻击</span><span class="attribute-value">{attack}</span></div>', unsafe_allow_html=True)
                     slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
                     with slider_col1:
                         if st.button("-", key=f"attacker_attack_minus_{i}"):
@@ -489,8 +490,8 @@ def main():
                     
                     # 防御
                     st.markdown('<div class="attribute-section">', unsafe_allow_html=True)
-                    st.write("**防御**")
-                    defense = st.number_input("", 100, 2000, st.session_state[f'attacker_defense_{i}'], key=f"attacker_defense_{i}", on_change=sync_attacker_defense_input_to_slider)
+                    defense = st.session_state[f'attacker_defense_{i}']
+                    st.markdown(f'<div class="attribute-row"><span class="attribute-label">防御</span><span class="attribute-value">{defense}</span></div>', unsafe_allow_html=True)
                     slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
                     with slider_col1:
                         if st.button("-", key=f"attacker_defense_minus_{i}"):
@@ -506,8 +507,8 @@ def main():
                     
                     # 生命
                     st.markdown('<div class="attribute-section">', unsafe_allow_html=True)
-                    st.write("**生命**")
-                    hp = st.number_input("", 100, 6000, st.session_state[f'attacker_hp_{i}'], key=f"attacker_hp_{i}", on_change=sync_attacker_hp_input_to_slider)
+                    hp = st.session_state[f'attacker_hp_{i}']
+                    st.markdown(f'<div class="attribute-row"><span class="attribute-label">生命</span><span class="attribute-value">{hp}</span></div>', unsafe_allow_html=True)
                     slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
                     with slider_col1:
                         if st.button("-", key=f"attacker_hp_minus_{i}"):
@@ -549,8 +550,8 @@ def main():
                     
                     # 攻击
                     st.markdown('<div class="attribute-section">', unsafe_allow_html=True)
-                    st.write("**攻击**")
-                    attack = st.number_input("", 100, 2000, st.session_state[f'defender_attack_{i}'], key=f"defender_attack_{i}", on_change=sync_defender_attack_input_to_slider)
+                    attack = st.session_state[f'defender_attack_{i}']
+                    st.markdown(f'<div class="attribute-row"><span class="attribute-label">攻击</span><span class="attribute-value">{attack}</span></div>', unsafe_allow_html=True)
                     slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
                     with slider_col1:
                         if st.button("-", key=f"defender_attack_minus_{i}"):
@@ -566,8 +567,8 @@ def main():
                     
                     # 防御
                     st.markdown('<div class="attribute-section">', unsafe_allow_html=True)
-                    st.write("**防御**")
-                    defense = st.number_input("", 100, 2000, st.session_state[f'defender_defense_{i}'], key=f"defender_defense_{i}", on_change=sync_defender_defense_input_to_slider)
+                    defense = st.session_state[f'defender_defense_{i}']
+                    st.markdown(f'<div class="attribute-row"><span class="attribute-label">防御</span><span class="attribute-value">{defense}</span></div>', unsafe_allow_html=True)
                     slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
                     with slider_col1:
                         if st.button("-", key=f"defender_defense_minus_{i}"):
@@ -583,8 +584,8 @@ def main():
                     
                     # 生命
                     st.markdown('<div class="attribute-section">', unsafe_allow_html=True)
-                    st.write("**生命**")
-                    hp = st.number_input("", 100, 6000, st.session_state[f'defender_hp_{i}'], key=f"defender_hp_{i}", on_change=sync_defender_hp_input_to_slider)
+                    hp = st.session_state[f'defender_hp_{i}']
+                    st.markdown(f'<div class="attribute-row"><span class="attribute-label">生命</span><span class="attribute-value">{hp}</span></div>', unsafe_allow_html=True)
                     slider_col1, slider_col2, slider_col3 = st.columns([1, 4, 1])
                     with slider_col1:
                         if st.button("-", key=f"defender_hp_minus_{i}"):
